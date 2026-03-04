@@ -1,0 +1,77 @@
+// 主题变量定义
+:root {
+  // 主色调 - 更柔和的蓝色
+  --primary-color: #4a7dff;
+  --primary-hover: #6b94ff;
+  --primary-light: #e8f0ff;
+  
+  // 浅色主题 - 纯净白色系
+  --background-color: #f5f7fa;
+  --card-background: #ffffff;
+  --surface-color: #f0f2f5;
+  --text-color: #1a1a2e;
+  --text-secondary: #4a4a68;
+  --text-tertiary: #8a8aa3;
+  --border-color: #e8eaf6;
+  --shadow-color: rgba(0, 0, 0, 0.06);
+  --hover-background: #f0f4f8;
+  --divider-color: #eef0f4;
+}
+
+// 深色主题 - 深蓝灰系
+[data-theme="dark"] {
+  --background-color: #0f1419;
+  --card-background: #1a1f2e;
+  --surface-color: #252b3d;
+  --text-color: #e8eaf6;
+  --text-secondary: #a0aec0;
+  --text-tertiary: #64748b;
+  --border-color: #2d3748;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --hover-background: #252b3d;
+  --divider-color: #2d3748;
+}
+
+// SCSS变量
+$primary-color: var(--primary-color);
+$primary-hover: var(--primary-hover);
+$primary-light: var(--primary-light);
+$background-color: var(--background-color);
+$card-background: var(--card-background);
+$surface-color: var(--surface-color);
+$text-color: var(--text-color);
+$text-secondary: var(--text-secondary);
+$text-tertiary: var(--text-tertiary);
+$border-color: var(--border-color);
+$shadow-color: var(--shadow-color);
+$hover-background: var(--hover-background);
+$divider-color: var(--divider-color);
+
+// 响应式断点
+$mobile: 768px;
+$tablet: 1024px;
+$desktop: 1280px;
+
+// 混合宏
+@mixin mobile {
+  @media (max-width: #{$mobile - 1}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: #{$mobile}) and (max-width: #{$tablet - 1}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$mobile}) {
+    @content;
+  }
+}
+
+@mixin max-width {
+  max-width: $desktop;
+  margin: 0 auto;
+}

@@ -1,0 +1,306 @@
+@use "./variables.scss" as *;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: $background-color;
+  color: $text-color;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+// 页面容器
+.page-container {
+  @include max-width;
+  padding: 12px 16px;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+// 卡片样式 - 更简约
+.card {
+  background-color: $card-background;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px $shadow-color;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+// 页面标题
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $text-color;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+// 空状态
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px;
+  color: $text-tertiary;
+  
+  .van-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  
+  p {
+    font-size: 14px;
+  }
+}
+
+// 底部导航适配
+.bottom-nav-spacer {
+  height: 56px;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $text-tertiary;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: $text-secondary;
+}
+
+// Vant组件主题覆盖 - 更简约
+.van-nav-bar {
+  background-color: $card-background !important;
+  box-shadow: 0 1px 3px $shadow-color;
+  
+  .van-nav-bar__title {
+    color: $text-color !important;
+    font-weight: 600;
+  }
+  
+  .van-icon {
+    color: $text-color !important;
+  }
+}
+
+.van-tabbar {
+  background-color: $card-background !important;
+  border-top: 1px solid $border-color;
+  box-shadow: 0 -1px 3px $shadow-color;
+}
+
+.van-tabbar-item {
+  color: $text-tertiary;
+  
+  &.van-tabbar-item--active {
+    color: $primary-color;
+  }
+}
+
+.van-search {
+  background-color: transparent !important;
+  padding: 0 !important;
+  
+  .van-search__content {
+    background-color: $surface-color !important;
+    border-radius: 12px;
+  }
+  
+  .van-field__control {
+    color: $text-color !important;
+  }
+}
+
+.van-cell {
+  background-color: transparent !important;
+  color: $text-color !important;
+  padding: 12px 0;
+  
+  &::after {
+    border-color: $divider-color !important;
+  }
+}
+
+.van-cell-group {
+  background-color: transparent !important;
+}
+
+.van-cell-group--inset {
+  background-color: $surface-color !important;
+  border-radius: 12px;
+  margin: 0;
+  overflow: hidden;
+}
+
+.van-popup {
+  background-color: $card-background !important;
+}
+
+.van-picker {
+  background-color: $card-background !important;
+  
+  .van-picker__toolbar {
+    background-color: $card-background !important;
+  }
+  
+  .van-picker__mask {
+    background: linear-gradient(180deg, $card-background 0%, transparent 50%, $card-background 100%) !important;
+  }
+  
+  .van-picker-column__item {
+    color: $text-color !important;
+  }
+}
+
+.van-action-sheet {
+  background-color: $card-background !important;
+  
+  .van-action-sheet__item {
+    color: $text-color !important;
+  }
+  
+  .van-action-sheet__cancel {
+    color: $text-secondary !important;
+    border-top-color: $border-color !important;
+  }
+}
+
+.van-dialog {
+  background-color: $card-background !important;
+  
+  .van-dialog__message {
+    color: $text-color !important;
+  }
+}
+
+.van-toast {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.van-tag {
+  border-radius: 6px;
+  font-weight: 500;
+  
+  &--primary {
+    background-color: $primary-light !important;
+    color: $primary-color !important;
+  }
+}
+
+.van-button {
+  border-radius: 10px;
+  font-weight: 500;
+  
+  &--primary {
+    background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%) !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(74, 125, 255, 0.3);
+  }
+  
+  &--default {
+    background-color: $surface-color !important;
+    border-color: $border-color !important;
+    color: $text-color !important;
+  }
+  
+  &--danger {
+    box-shadow: 0 2px 8px rgba(238, 10, 36, 0.2);
+  }
+}
+
+.van-checkbox__icon--checked .van-icon {
+  background-color: $primary-color !important;
+  border-color: $primary-color !important;
+}
+
+.van-switch--on {
+  background-color: $primary-color !important;
+}
+
+.van-stepper__input {
+  background-color: $surface-color !important;
+  color: $text-color !important;
+}
+
+.van-empty__description {
+  color: $text-secondary !important;
+}
+
+.van-loading__text {
+  color: $text-secondary !important;
+}
+
+.van-pull-refresh__head {
+  color: $text-secondary !important;
+}
+
+.van-list__finished-text,
+.van-list__loading-text {
+  color: $text-tertiary !important;
+}
+
+.van-tabs {
+  .van-tabs__nav {
+    background-color: transparent;
+  }
+  
+  .van-tab {
+    color: $text-secondary;
+    font-weight: 500;
+    
+    &.van-tab--active {
+      color: $primary-color;
+    }
+  }
+  
+  .van-tabs__line {
+    background-color: $primary-color;
+  }
+}
+
+.van-dropdown-menu__bar {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.van-dropdown-item__option {
+  color: $text-color;
+  
+  &--active {
+    color: $primary-color;
+  }
+}
+
+.van-skeleton {
+  .van-skeleton__row,
+  .van-skeleton__title {
+    background: linear-gradient(90deg, $surface-color 25%, $hover-background 50%, $surface-color 75%) !important;
+  }
+}
