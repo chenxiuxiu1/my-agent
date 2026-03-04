@@ -1,9 +1,10 @@
-// 多智能体统一接口管理 - 使用 DeepSeek API 生成真实数据
+// 智能分析助手 - 使用 DeepSeek API 生成专业分析报告
 
 import {
   callDeepSeekAPI,
   parseDeepSeekResponse,
-  generateNewsSearchPrompt,
+  generateThinkingPrompt,
+  generateAnalysisPrompt,
   generateNewsDetailPrompt,
   generateRecommendKeywordsPrompt
 } from './deepseek.js'
@@ -46,16 +47,59 @@ export function getDefaultAgent() {
   return AGENTS.DEEPSEEK.value
 }
 
-// 统一搜索接口 - 使用 DeepSeek API
-export async function searchNews({ keyword, category = 'all', agent = 'deepseek', page = 1, pageSize = 10 }) {
+// 第一步：获取思考过程
+export async function getThinkingProcess({ keyword, agent = 'deepseek', onStream }) {
   try {
-    // 生成提示词
-    const messages = generateNewsSearchPrompt(keyword, category, pageSize)
+    const messages = generateThinkingPrompt(keyword)
+    
+    const response = await callDeepSeekAPI(messages, {
+      temperature: 0.7,
+      max_tokens: 1000,
+      timeout: 20000
+    })
+
+    if (response.code !== 0) {
+      throw new Error(response.message)
+    }
+
+    const content = response.data?.choices?.[0]?.message?.content || ''
+    
+    // 解析思考要点
+    const thinkingPoints = content
+      .split('\n')
+      .filter(line => line.trim().startsWith('•') || line.trim().startsWith('-'))
+      .map(line => line.trim().replace(/^[•-]\s*/, ''))
+      .filter(line => line.length > 0)
+
+    return {
+      code: 0,
+      message: 'success',
+      data: {
+        thinkingPoints: thinkingPoints.length > 0 ? thinkingPoints : [content.trim()],
+        rawContent: content
+      }
+    }
+  } catch (error) {
+    console.error('Get thinking process failed:', error)
+    return {
+      code: -1,
+      message: error.message || '获取思考过程失败',
+      data: null
+    }
+  }
+}
+
+// 第二步：生成完整分析报告
+export async function analyzeKeyword({ keyword, agent = 'deepseek' }) {
+  try {
+    // 生成分析提示词
+    const messages = generateAnalysisPrompt(keyword)
     
     // 调用 DeepSeek API
     const response = await callDeepSeekAPI(messages, {
-      temperature: 0.8,
-      max_tokens: 4000
+      temperature: 0.7,
+      max_tokens: 3000,
+      timeout: 45000
     })
 
     if (response.code !== 0) {
@@ -65,49 +109,41 @@ export async function searchNews({ keyword, category = 'all', agent = 'deepseek'
     // 解析响应
     const parsedData = parseDeepSeekResponse(response)
     
-    if (!parsedData.news || !Array.isArray(parsedData.news)) {
+    // 验证返回数据格式
+    if (!parsedData.summary) {
       throw new Error('API返回数据格式错误')
     }
 
-    // 处理新闻数据
-    const newsList = parsedData.news.map((news, index) => ({
-      id: news.id || Date.now() + index,
-      title: news.title || '无标题',
-      content: news.content || news.summary || '暂无内容',
-      summary: news.summary || news.content?.substring(0, 100) + '...' || '暂无摘要',
-      source: news.source || '网络新闻',
-      publishTime: news.publishTime || new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      image: news.image || `https://picsum.photos/400/300?random=${Date.now() + index}`,
-      url: news.url || `https://example.com/news/${Date.now() + index}`,
+    // 构造分析结果
+    const analysisResult = {
       keyword: keyword,
-      category: news.category || (category === 'all' ? '综合' : category),
-      agent: agent
-    }))
+      summary: parsedData.summary || '',
+      marketData: parsedData.marketData || [],
+      stocks: parsedData.stocks || [],
+      chartData: parsedData.chartData || null,
+      keyPoints: parsedData.keyPoints || [],
+      conclusion: parsedData.conclusion || '',
+      timestamp: new Date().toISOString()
+    }
 
     return {
       code: 0,
       message: 'success',
-      data: {
-        list: newsList,
-        total: newsList.length * 5, // 模拟更多数据
-        page,
-        pageSize
-      }
+      data: analysisResult
     }
   } catch (error) {
-    console.error('Search news failed:', error)
-    // 如果API调用失败，返回错误信息
+    console.error('Analyze keyword failed:', error)
     return {
       code: -1,
-      message: error.message || '搜索失败',
-      data: {
-        list: [],
-        total: 0,
-        page,
-        pageSize
-      }
+      message: error.message || '分析失败',
+      data: null
     }
   }
+}
+
+// 保留旧接口用于兼容
+export async function searchNews({ keyword, category = 'all', agent = 'deepseek', page = 1, pageSize = 5 }) {
+  return analyzeKeyword({ keyword, agent })
 }
 
 // 获取新闻详情 - 使用 DeepSeek API
