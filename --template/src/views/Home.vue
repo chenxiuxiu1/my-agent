@@ -146,18 +146,89 @@
               :key="index"
               class="stock-item"
             >
-              <div class="stock-info">
-                <span class="stock-name">{{ stock.name }}</span>
-                <span class="stock-code">{{ stock.code }}</span>
+              <div class="stock-main">
+                <div class="stock-info">
+                  <span class="stock-name">{{ stock.name }}</span>
+                  <span class="stock-code">{{ stock.code }}</span>
+                </div>
+                <div class="stock-price">
+                  <span class="price">{{ stock.price }}</span>
+                  <span 
+                    class="change"
+                    :class="{ 'up': stock.change?.startsWith('+'), 'down': stock.change?.startsWith('-') }"
+                  >
+                    {{ stock.change }}
+                  </span>
+                </div>
               </div>
-              <div class="stock-price">
-                <span class="price">{{ stock.price }}</span>
-                <span 
-                  class="change"
-                  :class="{ 'up': stock.change.startsWith('+'), 'down': stock.change.startsWith('-') }"
+              
+              <!-- 技术指标 -->
+              <div v-if="stock.indicators" class="stock-indicators">
+                <div class="indicator-row">
+                  <div class="indicator-item">
+                    <span class="indicator-label">MA5</span>
+                    <span class="indicator-value">{{ stock.indicators.MA5 || '-' }}</span>
+                  </div>
+                  <div class="indicator-item">
+                    <span class="indicator-label">MA10</span>
+                    <span class="indicator-value">{{ stock.indicators.MA10 || '-' }}</span>
+                  </div>
+                  <div class="indicator-item">
+                    <span class="indicator-label">MA20</span>
+                    <span class="indicator-value">{{ stock.indicators.MA20 || '-' }}</span>
+                  </div>
+                </div>
+                <div class="indicator-row">
+                  <div class="indicator-item">
+                    <span class="indicator-label">RSI</span>
+                    <span class="indicator-value" :class="getRSIClass(stock.indicators.RSI)">{{ stock.indicators.RSI || '-' }}</span>
+                  </div>
+                  <div class="indicator-item">
+                    <span class="indicator-label">MACD</span>
+                    <span class="indicator-value" :class="stock.indicators.MACD > 0 ? 'up' : 'down'">{{ stock.indicators.MACD || '-' }}</span>
+                  </div>
+                </div>
+                <div class="indicator-row">
+                  <div class="indicator-item">
+                    <span class="indicator-label">支撑</span>
+                    <span class="indicator-value support">{{ stock.indicators.support || '-' }}</span>
+                  </div>
+                  <div class="indicator-item">
+                    <span class="indicator-label">压力</span>
+                    <span class="indicator-value resistance">{{ stock.indicators.resistance || '-' }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 平台链接 -->
+              <div v-if="stock.links" class="stock-links">
+                <a 
+                  v-if="stock.links.eastmoney" 
+                  :href="stock.links.eastmoney" 
+                  target="_blank"
+                  class="platform-link eastmoney"
                 >
-                  {{ stock.change }}
-                </span>
+                  <van-icon name="chart-o" />
+                  <span>东方财富</span>
+                </a>
+                <a 
+                  v-if="stock.links.ths" 
+                  :href="stock.links.ths" 
+                  target="_blank"
+                  class="platform-link ths"
+                >
+                  <van-icon name="bar-chart-o" />
+                  <span>同花顺</span>
+                </a>
+                <a 
+                  v-if="stock.links.xueqiu" 
+                  :href="stock.links.xueqiu" 
+                  target="_blank"
+                  class="platform-link xueqiu"
+                >
+                  <van-icon name="cluster-o" />
+                  <span>雪球</span>
+                </a>
               </div>
             </div>
           </div>
@@ -427,6 +498,15 @@ const formatTime = (timestamp) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+// 获取RSI样式类
+const getRSIClass = (rsi) => {
+  if (!rsi) return ''
+  const value = parseFloat(rsi)
+  if (value >= 70) return 'overbought'
+  if (value <= 30) return 'oversold'
+  return ''
 }
 
 // 初始化
@@ -733,9 +813,8 @@ onMounted(() => {
 .stocks-list {
   .stock-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
+    flex-direction: column;
+    padding: 16px 0;
     border-bottom: 1px solid var(--border-color);
     
     &:last-child {
@@ -745,6 +824,113 @@ onMounted(() => {
     
     &:first-child {
       padding-top: 0;
+    }
+    
+    .stock-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .stock-indicators {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      
+      .indicator-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 8px;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+      
+      .indicator-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        
+        .indicator-label {
+          font-size: 11px;
+          color: var(--text-tertiary);
+          min-width: 32px;
+        }
+        
+        .indicator-value {
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--text-color);
+          
+          &.up {
+            color: #f44336;
+          }
+          
+          &.down {
+            color: #4caf50;
+          }
+          
+          &.overbought {
+            color: #f44336;
+          }
+          
+          &.oversold {
+            color: #4caf50;
+          }
+          
+          &.support {
+            color: #4caf50;
+          }
+          
+          &.resistance {
+            color: #f44336;
+          }
+        }
+      }
+    }
+    
+    .stock-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      
+      .platform-link {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        text-decoration: none;
+        transition: all 0.2s;
+        
+        &:active {
+          opacity: 0.7;
+        }
+        
+        &.eastmoney {
+          background: rgba(255, 107, 0, 0.1);
+          color: #ff6b00;
+        }
+        
+        &.ths {
+          background: rgba(245, 0, 0, 0.1);
+          color: #f50000;
+        }
+        
+        &.xueqiu {
+          background: rgba(0, 122, 255, 0.1);
+          color: #007aff;
+        }
+        
+        .van-icon {
+          font-size: 12px;
+        }
+      }
     }
   }
   

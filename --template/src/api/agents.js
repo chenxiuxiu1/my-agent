@@ -52,10 +52,11 @@ export async function getThinkingProcess({ keyword, agent = 'deepseek', onStream
   try {
     const messages = generateThinkingPrompt(keyword)
     
+    // 使用更快的参数获取思考过程
     const response = await callDeepSeekAPI(messages, {
-      temperature: 0.7,
-      max_tokens: 1000,
-      timeout: 20000
+      temperature: 0.5,
+      max_tokens: 800,
+      timeout: 15000
     })
 
     if (response.code !== 0) {
@@ -95,11 +96,11 @@ export async function analyzeKeyword({ keyword, agent = 'deepseek' }) {
     // 生成分析提示词
     const messages = generateAnalysisPrompt(keyword)
     
-    // 调用 DeepSeek API
+    // 调用 DeepSeek API - 优化参数以平衡速度和质量
     const response = await callDeepSeekAPI(messages, {
-      temperature: 0.7,
-      max_tokens: 3000,
-      timeout: 45000
+      temperature: 0.5,
+      max_tokens: 2500,
+      timeout: 35000
     })
 
     if (response.code !== 0) {

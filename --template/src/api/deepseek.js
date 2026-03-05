@@ -11,10 +11,10 @@ const API_KEY = 'sk-538618da3e61444794587e1dfdf330dd'
  */
 export async function callDeepSeekAPI(messages, options = {}) {
   const defaultOptions = {
-    model: 'deepseek-chat',
-    temperature: 0.7,
-    max_tokens: 2000, // 减少token数以加快响应
-    timeout: 30000, // 30秒超时
+    model: options.model || 'deepseek-chat', // 默认使用 deepseek-chat
+    temperature: options.temperature ?? 0.5, // 降低温度，减少随机性，加快生成
+    max_tokens: options.max_tokens || 1500, // 限制输出长度
+    timeout: options.timeout || 25000, // 25秒超时
     ...options
   }
 
@@ -121,14 +121,16 @@ export function parseDeepSeekResponse(response) {
  * @returns {Array} 消息列表
  */
 export function generateThinkingPrompt(keyword) {
+  const currentDate = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
+  
   return [
     {
       role: 'system',
-      content: `你是一位专业的数据分析专家。用户将要查询一个主题，请先展示你的思考过程。
+      content: `你是一位专业的数据分析专家。当前日期是${currentDate}。用户将要查询一个主题，请先展示你的思考过程。
 
 请用简洁的要点形式（每行以"•"开头）展示你会从哪些角度分析这个主题，例如：
-• 分析市场现状和趋势
-• 关注相关政策和新闻
+• 分析当前市场现状和最新趋势（基于${currentDate}）
+• 关注近期相关政策和新闻动态
 • 研究主要参与者和标的
 • 评估风险和机会
 
@@ -147,30 +149,45 @@ export function generateThinkingPrompt(keyword) {
  * @returns {Array} 消息列表
  */
 export function generateAnalysisPrompt(keyword) {
+  const currentDate = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
+  const currentYear = new Date().getFullYear()
+  
   return [
     {
       role: 'system',
-      content: `你是一位专业的数据分析专家和投资顾问。请根据用户提供的查询关键词，生成一份详细的分析报告。
+      content: `你是一位专业的数据分析专家和投资顾问。今天是${currentDate}，${currentYear}年。请根据用户提供的查询关键词，生成一份基于最新时间的详细分析报告。
 
 报告必须包含以下内容：
-1. **概述** (summary): 对该主题的总体介绍，100字以内
-2. **市场/行业数据** (marketData): 包含以下指标数组
+1. **概述** (summary): 对该主题的总体介绍，80字以内，要体现${currentYear}年的最新情况
+2. **市场/行业数据** (marketData): 包含以下指标数组，数据要基于${currentDate}的最新情况
    - 指标名称 (name)
    - 当前数值 (value)  
    - 涨跌幅/变化 (change)，如 "+2.5%" 或 "-1.2%"
    - 趋势 (trend): "up" | "down" | "flat"
-3. **相关标的** (stocks): 如果是金融类查询，提供相关股票/基金信息
-   - 代码 (code)
-   - 名称 (name)
-   - 价格 (price)
-   - 涨跌幅 (change)
-4. **图表数据** (chartData): 用于展示趋势的数据
+3. **相关标的** (stocks): 如果是金融类查询，提供相关股票/基金信息，使用${currentYear}年最新数据
+   - 代码 (code): 股票代码
+   - 名称 (name): 股票名称
+   - 价格 (price): 当前价格
+   - 涨跌幅 (change): 涨跌百分比
+   - 技术指标 (indicators): 包含以下技术分析指标
+     * MA5: 5日均线价格
+     * MA10: 10日均线价格
+     * MA20: 20日均线价格
+     * RSI: RSI相对强弱指标(0-100)
+     * MACD: MACD指标值
+     * 支撑位 (support): 主要支撑位价格
+     * 压力位 (resistance): 主要压力位价格
+   - 平台链接 (links): 各金融平台查看链接
+     * 东方财富 (eastmoney): 东方财富网个股链接
+     * 同花顺 (ths): 同花顺个股链接
+     * 雪球 (xueqiu): 雪球个股链接
+4. **图表数据** (chartData): 用于展示趋势的数据，X轴时间范围应该包含${currentYear}年
    - 标题 (title)
-   - X轴标签 (xAxis): 日期或时间数组
+   - X轴标签 (xAxis): 日期或时间数组，使用${currentYear}年及近期的月份/日期
    - Y轴数据 (yAxis): 数值数组
    - 数据系列名称 (seriesName)
-5. **分析要点** (keyPoints): 3-5条关键分析要点，每条包含标题和内容
-6. **总结建议** (conclusion): 综合分析和参考建议，200字以内
+5. **分析要点** (keyPoints): 3-4条关键分析要点，每条包含标题和内容，要反映${currentYear}年的最新动态
+6. **总结建议** (conclusion): 综合分析和参考建议，150字以内，基于当前${currentDate}的市场情况
 
 返回严格的JSON格式：
 {
@@ -179,7 +196,26 @@ export function generateAnalysisPrompt(keyword) {
     {"name": "指标名", "value": "数值", "change": "+2.5%", "trend": "up"}
   ],
   "stocks": [
-    {"code": "代码", "name": "名称", "price": "价格", "change": "+1.2%"}
+    {
+      "code": "600519",
+      "name": "贵州茅台",
+      "price": "1688.88",
+      "change": "+2.35%",
+      "indicators": {
+        "MA5": "1670.50",
+        "MA10": "1650.30",
+        "MA20": "1620.80",
+        "RSI": "65.5",
+        "MACD": "+12.5",
+        "support": "1600.00",
+        "resistance": "1750.00"
+      },
+      "links": {
+        "eastmoney": "https://quote.eastmoney.com/concept/sh600519.html",
+        "ths": "https://basic.10jqka.com.cn/600519/",
+        "xueqiu": "https://xueqiu.com/S/SH600519"
+      }
+    }
   ],
   "chartData": {
     "title": "图表标题",
@@ -193,11 +229,13 @@ export function generateAnalysisPrompt(keyword) {
   "conclusion": "总结建议文本"
 }
 
-注意：
-- 数据要基于当前市场真实情况
-- 如果是非金融类查询（如科技、行业等），stocks可以为空数组
-- 确保所有数值合理可信
-- 分析要有深度和专业性`
+重要提示：
+- 今天是${currentDate}，${currentYear}年，所有数据和分析必须基于${currentYear}年的最新情况
+- 图表X轴时间应该使用${currentYear}年的月份（如"${currentYear}年1月"、"${currentYear}年2月"等）
+- 如果是金融数据，使用${currentDate}的最新价格数据
+- 技术指标数据要合理，符合真实市场情况
+- 平台链接格式：东方财富使用 https://quote.eastmoney.com/concept/[sh/sz]代码.html，同花顺使用 https://basic.10jqka.com.cn/代码/，雪球使用 https://xueqiu.com/S/[SH/SZ]代码
+- 分析要有深度和专业性，反映最新市场动态`
     },
     {
       role: 'user',
